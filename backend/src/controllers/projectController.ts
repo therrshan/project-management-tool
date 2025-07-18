@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import { projectSchema, boardSchema, boardColumnsSchema } from '../utils/validation';
+import { projectSchema, boardSchema } from '../utils/validation';
 import { createError } from '../middleware/errorHandler';
 import { AuthenticatedRequest } from '../middleware/auth';
 
@@ -382,7 +382,7 @@ export const getBoards = async (req: AuthenticatedRequest, res: Response) => {
 
 export const updateBoard = async (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
-  const { name } = req.body;
+  const { name, columns } = req.body;
   const userId = req.user!.id;
 
   const board = await prisma.board.findUnique({
@@ -415,9 +415,13 @@ export const updateBoard = async (req: AuthenticatedRequest, res: Response) => {
     throw createError('Access denied - insufficient permissions', 403);
   }
 
+  const updateData: any = {};
+  if (name !== undefined) updateData.name = name;
+  if (columns !== undefined) updateData.columns = columns;
+
   const updatedBoard = await prisma.board.update({
     where: { id },
-    data: { name }
+    data: updateData
   });
 
   res.json({

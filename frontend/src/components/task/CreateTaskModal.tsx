@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { X, Calendar, User, AlertCircle } from 'lucide-react';
 import { LoadingButton } from '../common/LoadingSpinner';
 import apiService from '../../utils/api';
-import type { Task, CreateTaskData } from '../../types';
+import type {CreateTaskData } from '../../types';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Task title is required').max(200, 'Title is too long'),
@@ -22,15 +22,13 @@ interface CreateTaskModalProps {
   onClose: () => void;
   boardId: string;
   columnId: string;
-  onTaskCreated: (task: Task) => void;
 }
 
 export const CreateTaskModal = ({ 
   isOpen, 
   onClose, 
   boardId, 
-  columnId, 
-  onTaskCreated 
+  columnId,  
 }: CreateTaskModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,8 +63,8 @@ export const CreateTaskModal = ({
         assignedTo: data.assignedTo || undefined
       };
       
-      const response = await apiService.createTask(taskData);
-      onTaskCreated(response.task);
+      await apiService.createTask(taskData);
+      //onTaskCreated(response.task);
       reset();
       onClose();
     } catch (error: any) {

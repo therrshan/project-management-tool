@@ -8,7 +8,7 @@ import { CreateTaskModal } from '../components/task/CreateTaskModal';
 import { CreateBoardModal } from '../components/board/CreateBoardModal';
 import { useSocket } from '../hooks/useSocket';
 import apiService from '../utils/api';
-import type { Project, Task, BoardColumn } from '../types';
+import type { Project, Task } from '../types';
 import { Plus } from 'lucide-react';
 
 export const ProjectPage = () => {
@@ -108,24 +108,14 @@ export const ProjectPage = () => {
     setShowCreateTaskModal(true);
   };
 
-  const handleCreateBoard = (columnId: string) => {
-    // setSelectedColumnId(columnId);
-    setShowCreateBoardModal(true);
-  };
-  
-  const handleTaskCreated = (newTask: Task) => {
-    setTasks(prev => [...prev, newTask]);
-    setShowCreateTaskModal(false);
-  };
 
-    const handleBoardCreated = (newBoard: BoardColumn) => {
-    // setTasks(prev => [...prev, newBoard]);
-    setShowCreateBoardModal(false);
-  };
-
-  const onCreateBoard = (columnId: string) => {
-    if (userRole === 'ADMIN' || userRole === 'MEMBER') {
-      handleCreateBoard(columnId);
+  const handleBoardEdited = (newBoard: any) => {
+    if (project) {
+      const updatedProject = {
+        ...project,
+        boards: [newBoard]
+      };
+      setProject(updatedProject);
     }
   };
 
@@ -158,6 +148,13 @@ export const ProjectPage = () => {
     { id: 'in-progress', title: 'In Progress' },
     { id: 'done', title: 'Done' }
   ];
+
+  const tasksByColumnId = tasks.reduce((acc, task) => {
+    if (!acc[task.columnId]) acc[task.columnId] = [];
+    acc[task.columnId].push(task);
+    return acc;
+  }, {} as Record<string, Task[]>);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -218,19 +215,22 @@ export const ProjectPage = () => {
         {/* Kanban Board */}
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="p-6 border-b">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 {board?.name || 'Main Board'}
               </h3>
-              
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <button
-                  onClick={() => onCreateBoard(selectedColumnId)}
-                  className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-                <span>{tasks.length} tasks</span>
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <span>{tasks.length} tasks</span>
+                </div>
+                {userRole === 'ADMIN' && (
+                  <button
+                    onClick={() => setShowCreateBoardModal(true)}
+                    className="flex items-center space-x-2 px-3 py-1 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -254,15 +254,22 @@ export const ProjectPage = () => {
           onClose={() => setShowCreateTaskModal(false)}
           boardId={board.id}
           columnId={selectedColumnId}
-          onTaskCreated={handleTaskCreated}
         />
       )}
 
-      {showCreateBoardModal && (
+      {/* Edit Board Modal */}
+      {showCreateBoardModal && board && (
         <CreateBoardModal
           isOpen={showCreateBoardModal}
           onClose={() => setShowCreateBoardModal(false)}
-          onBoardCreated={handleBoardCreated}
+          // projectId={project.id}
+          onBoardCreated={handleBoardEdited}
+          existingBoard={{
+            id: board.id,
+            name: board.name,
+            columns: columns
+          }}
+          tasksByColumnId={tasksByColumnId}
         />
       )}
     </div>

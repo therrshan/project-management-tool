@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Plus, Users, Settings, ArrowLeft, FolderOpen, Calendar } from 'lucide-react';
+import { Plus, Users, Settings, ArrowLeft, FolderOpen, Calendar, UserPlus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { CreateProjectModal } from '../components/project/CreateProjectModal';
+// import { WorkspaceMembersModal } from '../components/workspace/WorkspaceMembersModal.tsx';
 import apiService from '../utils/api';
 import type { Project } from '../types';
 
@@ -13,6 +14,7 @@ export const WorkspacePage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
   
   const { user } = useAuthStore();
   const { currentWorkspace, userRole, fetchWorkspace, isLoading } = useWorkspaceStore();
@@ -81,12 +83,24 @@ export const WorkspacePage = () => {
                 <span className="text-sm font-medium text-gray-700">{user?.name}</span>
               </div>
               
-              {(userRole === 'ADMIN' || userRole === 'MEMBER') && (
-                <button className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </button>
-              )}
+              <div className="flex items-center space-x-2">
+                {userRole === 'ADMIN' && (
+                  <button
+                    onClick={() => setShowMembersModal(true)}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>Manage Members</span>
+                  </button>
+                )}
+                
+                {(userRole === 'ADMIN' || userRole === 'MEMBER') && (
+                  <button className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -215,6 +229,8 @@ export const WorkspacePage = () => {
           </div>
         )}
       </main>
+
+      {/* Members Modal */}
 
       {/* Create Project Modal */}
       {showCreateModal && (

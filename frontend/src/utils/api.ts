@@ -153,7 +153,6 @@ class ApiService {
     return response.data;
   }
 
-
   async updateProject(id: string, data: { name: string; description?: string }): Promise<{ project: Project }> {
     const response = await this.api.put(`/projects/${id}`, data);
     return response.data;
@@ -163,13 +162,8 @@ class ApiService {
     await this.api.delete(`/projects/${id}`);
   }
 
-  async createBoard(data: { name: string; projectId: string }) {
+  async createBoard(data: { name: string; projectId: string; columns?: any }) {
     const response = await this.api.post('/projects/boards', data);
-    return response.data;
-  }
-
-  async createBoardColumn(data: { name: string;}) {
-    const response = await this.api.post('/projects/boardcolumns', data);
     return response.data;
   }
 
@@ -178,7 +172,7 @@ class ApiService {
     return response.data;
   }
 
-  async updateBoard(id: string, data: { name: string }) {
+  async updateBoard(id: string, data: { name: string; columns?: any }) {
     const response = await this.api.put(`/projects/boards/${id}`, data);
     return response.data;
   }
