@@ -24,13 +24,6 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"]
-  }
-});
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -57,12 +50,29 @@ app.use(helmet({
 
 app.use(compression());
 
+// Fix the CORS origins by filtering out undefined values
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:3000",
+  "http://localhost:5173", // Vite dev server
+].filter((origin): origin is string => Boolean(origin));
+
+// Update CORS config
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: allowedOrigins,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// Update Socket.IO CORS
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"]
+  }
+});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

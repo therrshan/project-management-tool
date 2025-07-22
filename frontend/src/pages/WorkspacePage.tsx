@@ -270,7 +270,7 @@ export const WorkspacePage = () => {
         workspace={currentWorkspace}
         currentUserId={user?.id!}
         userRole={userRole!}
-        onWorkspaceUpdated={(updatedWorkspace) => {
+        onWorkspaceUpdated={(_) => {
           // Update the current workspace in your store
           fetchWorkspace(workspaceId!);
           setShowSettingsModal(false);
