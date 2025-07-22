@@ -33,6 +33,7 @@ export interface Workspace {
   updatedAt: string;
   createdBy: string;
   members: WorkspaceMember[];
+  projects?: Project[];
   _count: {
     projects: number;
   };
@@ -40,9 +41,16 @@ export interface Workspace {
 
 export interface WorkspaceMember {
   id: string;
+  workspaceId: string;
+  userId: string;  // Add this line
   role: 'ADMIN' | 'MEMBER' | 'VIEWER';
   joinedAt: string;
-  user: User;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
 }
 
 export interface Project {

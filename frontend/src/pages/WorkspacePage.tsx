@@ -5,7 +5,8 @@ import { useAuthStore } from '../store/authStore';
 import { useWorkspaceStore } from '../store/workspaceStore';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { CreateProjectModal } from '../components/project/CreateProjectModal';
-// import { WorkspaceMembersModal } from '../components/workspace/WorkspaceMembersModal.tsx';
+import { ManageMembersModal } from '../components/workspace/ManageMembersModal.tsx';
+import { WorkspaceSettingsModal } from '../components/workspace/WorkspaceSettingsModal';
 import apiService from '../utils/api';
 import type { Project } from '../types';
 
@@ -15,6 +16,7 @@ export const WorkspacePage = () => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   
   const { user } = useAuthStore();
   const { currentWorkspace, userRole, fetchWorkspace, isLoading } = useWorkspaceStore();
@@ -95,7 +97,10 @@ export const WorkspacePage = () => {
                 )}
                 
                 {(userRole === 'ADMIN' || userRole === 'MEMBER') && (
-                  <button className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                  <button 
+                    onClick={() => setShowSettingsModal(true)}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                  >
                     <Settings className="h-4 w-4" />
                     <span>Settings</span>
                   </button>
@@ -231,6 +236,20 @@ export const WorkspacePage = () => {
       </main>
 
       {/* Members Modal */}
+      {showMembersModal && (
+        <ManageMembersModal
+          isOpen={showMembersModal}
+          onClose={() => setShowMembersModal(false)}
+          workspaceId={workspaceId!}
+          currentUserId={user?.id!}
+          workspaceCreatorId={currentWorkspace.createdBy}
+          members={currentWorkspace.members}
+          onMembersUpdated={() => {
+            fetchWorkspace(workspaceId!);
+            setShowMembersModal(false);
+          }}
+        />
+    )}
 
       {/* Create Project Modal */}
       {showCreateModal && (
@@ -241,6 +260,29 @@ export const WorkspacePage = () => {
           onProjectCreated={handleProjectCreated}
         />
       )}
+
+
+      {/* Workspace Settings Modal */}
+      {showSettingsModal && (
+      <WorkspaceSettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        workspace={currentWorkspace}
+        currentUserId={user?.id!}
+        userRole={userRole!}
+        onWorkspaceUpdated={(updatedWorkspace) => {
+          // Update the current workspace in your store
+          fetchWorkspace(workspaceId!);
+          setShowSettingsModal(false);
+        }}
+        onWorkspaceDeleted={() => {
+          // Navigate back to dashboard
+          window.location.href = '/dashboard';
+        }}
+      />
+    )}
+
+
     </div>
   );
 };

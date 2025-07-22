@@ -6,6 +6,8 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { KanbanBoard } from '../components/board/KanbanBoard';
 import { CreateTaskModal } from '../components/task/CreateTaskModal';
 import { CreateBoardModal } from '../components/board/CreateBoardModal';
+import { ProjectSettingsModal } from '../components/project/ProjectSettingsModal';
+import { Settings } from 'lucide-react';
 import { useSocket } from '../hooks/useSocket';
 import apiService from '../utils/api';
 import type { Project, Task } from '../types';
@@ -17,6 +19,8 @@ export const ProjectPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [workspaceCreatorId, setWorkspaceCreatorId] = useState<string>('');
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
   const [selectedColumnId, setSelectedColumnId] = useState<string>('todo');
@@ -80,19 +84,23 @@ export const ProjectPage = () => {
   }, [project?.boards?.[0]?.id, on, off]);
 
   const loadProject = async () => {
-    if (!projectId) return;
+  if (!projectId) return;
+  
+  try {
+    setIsLoading(true);
+    const response = await apiService.getProject(projectId);
+    setProject(response.project);
+    setUserRole(response.userRole);
     
-    try {
-      setIsLoading(true);
-      const response = await apiService.getProject(projectId);
-      setProject(response.project);
-      setUserRole(response.userRole);
-    } catch (error) {
-      console.error('Failed to load project:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Get workspace info to determine creator
+    const workspaceResponse = await apiService.getWorkspace(response.project.workspaceId);
+    setWorkspaceCreatorId(workspaceResponse.workspace.createdBy);
+  } catch (error) {
+    console.error('Failed to load project:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const loadTasks = async (boardId: string) => {
     try {
@@ -183,6 +191,15 @@ export const ProjectPage = () => {
                 />
                 <span className="text-sm font-medium text-gray-700">{user?.name}</span>
               </div>
+              {(userRole === 'ADMIN' || (user?.id && project.createdBy === user.id)) && (
+                <button
+                  onClick={() => setShowSettingsModal(true)}
+                  className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -208,6 +225,7 @@ export const ProjectPage = () => {
                 <Calendar className="h-4 w-4" />
                 <span>{new Date(project.createdAt).toLocaleDateString()}</span>
               </div>
+              
             </div>
           </div>
         </div>
@@ -270,6 +288,26 @@ export const ProjectPage = () => {
             columns: columns
           }}
           tasksByColumnId={tasksByColumnId}
+        />
+      )}
+
+
+      {/* Project Settings Modal */}
+      {showSettingsModal && (
+        <ProjectSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          project={project}
+          currentUserId={user?.id!}
+          userRole={userRole!}
+          workspaceCreatorId={workspaceCreatorId}
+          onProjectUpdated={(updatedProject) => {
+            setProject(updatedProject);
+            setShowSettingsModal(false);
+          }}
+          onProjectDeleted={() => {
+            window.location.href = `/workspace/${project.workspaceId}`;
+          }}
         />
       )}
     </div>

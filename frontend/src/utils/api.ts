@@ -84,6 +84,11 @@ class ApiService {
     return response.data;
   }
 
+  async searchUsers(query: string): Promise<{ users: Array<{ id: string; name: string; email: string; avatar?: string }> }> {
+    const response = await this.api.get(`/users/search?q=${encodeURIComponent(query)}`);
+    return response.data;
+  } 
+
   async login(data: LoginData): Promise<AuthResponse> {
     const response = await this.api.post('/auth/login', data);
     return response.data;

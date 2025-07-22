@@ -294,6 +294,11 @@ export const removeUser = async (req: AuthenticatedRequest, res: Response) => {
   const { id, userId: targetUserId } = req.params;
   const currentUserId = req.user!.id;
 
+  console.log('Remove user request:');
+  console.log('- Workspace ID:', id);
+  console.log('- Target User ID:', targetUserId);
+  console.log('- Current User ID:', currentUserId);
+
   const workspace = await prisma.workspace.findUnique({
     where: { id },
     include: {
@@ -326,6 +331,18 @@ export const removeUser = async (req: AuthenticatedRequest, res: Response) => {
       }
     }
   });
+
+  console.log('Member found:', member ? 'Yes' : 'No');
+  if (member) {
+    console.log('Member details:', JSON.stringify(member, null, 2));
+  }
+
+  // Let's also check all members in this workspace
+  const allMembers = await prisma.workspaceMember.findMany({
+    where: { workspaceId: id },
+    include: { user: { select: { id: true, name: true, email: true } } }
+  });
+  console.log('All workspace members:', JSON.stringify(allMembers, null, 2));
 
   if (!member) {
     throw createError('User is not a member of this workspace', 404);

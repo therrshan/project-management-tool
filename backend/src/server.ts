@@ -13,8 +13,12 @@ import { workspaceRoutes } from './routes/workspace';
 import { projectRoutes } from './routes/project';
 import { taskRoutes } from './routes/task';
 import { uploadRoutes } from './routes/upload';
+import { userRoutes } from './routes/user';
 import { errorHandler } from './middleware/errorHandler';
 import { setupSocketHandlers } from './socket/handlers';
+
+
+
 
 dotenv.config();
 
@@ -82,6 +86,7 @@ app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/users', userRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
