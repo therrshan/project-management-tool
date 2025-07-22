@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, UserPlus, Trash2, Crown, Shield, Eye, Search, ChevronDown } from 'lucide-react';
+import { X, UserPlus, Trash2, Crown, Shield, Eye, Search } from 'lucide-react';
 import { LoadingButton } from '../common/LoadingSpinner';
 import apiService from '../../utils/api';
 import type { WorkspaceMember } from '../../types';
